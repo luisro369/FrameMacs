@@ -1,0 +1,191 @@
+#+TITLE: FrameMacs
+#+AUTHOR: Luis Romualdo (@luisro369)
+#+Description: This is a configuration file for emacs modified and adapted with over 10 years of emacs usage
+#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs
+
+#+CAPTION: FrameMacs Logo
+[[file:assets/logo.png]]
+
+This is an emacs config file modified over ten years, it has got to a pont I can be certain it can provide value to you, especially if you are new to emacs.
+My approach is trying to be as pure emacs as posible, without using evil-mode (of course you are absolutely free to add any package and use/modify this as you please)
+
+\\
+Note: Before using this config file consider installing this packages on your OS.
+- cmake
+- libtool
+- libvterm-dev
+- texlive-full
+- all-the-icons-install-font (install it using alt+x)
+
+* Basic UI Setup
+This is useful to configure emacs predefined stuff
+
+** Modes and key bindings
+#+begin_src emacs-lisp
+  ;;--- Modes and key bindings ---
+  (setq inhibit-startup-screen t)                 ;; Disable the startup screen
+  (when (display-graphic-p)(scroll-bar-mode -1))  ;; Disable the scroll bar when running in terminal
+  (show-paren-mode 1)                             ;; Show matching parentheses
+  (global-auto-revert-mode t)                     ;; Auto-reload files changed on disk
+  (global-display-line-numbers-mode t)            ;; Show lines of code
+  (delete-selection-mode 1)                         ;; Replaces selected text with new text
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode) ;; All the icons for dired mode
+  (add-hook 'after-init-hook 'global-company-mode) ;; Auto completion mode
+  (setq org-support-shift-select t)               ;; Shift select for org mode
+  (global-set-key (kbd "C-x p") (lambda () (interactive) (other-window -1))) ;; Move to previous buffer
+#+end_src
+
+** Themes
+#+begin_src emacs-lisp
+  ;;--- Doom theme configuration ---
+  (require 'doom-themes)
+  (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t)
+  (load-theme 'doom-dark+ t)
+;;(load-theme 'doom-one t)
+  (doom-themes-visual-bell-config)
+#+end_src
+
+** Fonts
+#+begin_src emacs-lisp
+   ;;--- Font settings ---
+   (set-face-attribute 'default nil
+                    :family "DejaVu Sans Mono"
+                    :height 110
+                    :weight 'normal
+                    :slant 'normal)
+#+end_src
+
+** IDE initialization layout
+
+This is an implementation of an IDE look alike for emacs, if you are opening emacs normally it only shows sratchpad buffer
+but if you are opening a project via: *"folder -> right click -> open with emacs"* it opens with the following layout
+
+#+begin_src emacs-lisp
+  ;;--- IDE (like) initialization layout ---
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+  	    (toggle-frame-maximized)
+  	    ;; Check if command line arguments were passed and if the first one is a directory
+              (when (and command-line-args
+                         (let ((first-arg (car (last command-line-args))))
+  			 (and first-arg (file-directory-p first-arg))))
+                (multi-vterm-dedicated-open)
+                (other-window -1)
+  	      ;; Dynamically calculate screen height and adjust vterm 
+  	      (let ((vterm-lines (- (round (* (frame-height) 0.25)) (window-height (next-window)))))
+  		(window-resize (next-window) vterm-lines))
+                ;;(enlarge-window 20)
+                (neotree-toggle))))
+
+#+end_src
+
+* Emacs Repositories
+This section is to configure and install software from other package managers that emacs have.
+** MELPA
+*** Setup
+#+begin_src emacs-lisp
+  ;;--- MELPA setup ---
+  (require 'package)
+  (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                      (not (gnutls-available-p))))
+         (proto (if no-ssl "http" "https")))
+    (when no-ssl
+      (warn "SSL not supported. Consider upgrading Emacs for secure connections."))
+    (add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t))
+  (package-initialize)
+#+end_src
+
+*** Package configuration
+**** Package list
+#+NAME: package-list
+- ac-html
+- ac-html-angular
+- all-the-icons
+- all-the-icons-completion
+- auto-complete
+- company
+- company-web
+- django-mode
+- doom-themes
+- json-mode
+- hideshow-org
+- js-react-redux-yasnippets
+- js2-mode
+- material-theme
+- multi-vterm
+- neotree
+- python-django
+- python-mode
+- smex
+- typescript-mode
+- vterm
+- web
+- web-completion-data
+- web-mode
+- yaml-mode
+- zenburn-theme
+  
+#+begin_src emacs-lisp :var pkgs=package-list
+  ;;--- Installing packages in the list ---
+  (defvar my-packages
+    (mapcar 'intern pkgs)
+    "List of packages to install at launch.")
+#+end_src
+
+**** Package installation
+#+begin_src emacs-lisp
+  (unless package-archive-contents
+    (package-refresh-contents))
+
+  (dolist (pkg my-packages)
+    (unless (package-installed-p pkg)
+      (package-install pkg)))
+
+#+end_src
+
+* Emacs and packages general configuration
+** Neotree
+This configures neotree to appear with F12, its size, and prevent showing dotted files
+
+#+begin_src emacs-lisp
+  ;;--- Installed packages configurations ---
+  (use-package neotree
+    :ensure t
+    :bind ([f12] . neotree-toggle)
+    :config
+    (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
+    (setq neo-window-width 40)
+    (with-eval-after-load 'neotree
+      (setq neo-hidden-regexp-list '("^\\." "__pycache__" "~$" "^#.*#$"))
+      )
+    )
+#+end_src
+
+** Smex + Ido
+This starts smex and ido for emacs
+
+#+begin_src emacs-lisp
+  (require 'smex)
+  (global-set-key (kbd "M-x") 'smex)
+
+  (require 'ido)
+  (ido-mode t)
+
+#+end_src
+
+** Display line command
+This intends to prevent line numbers to apper on the following
+#+begin_src emacs-lisp
+  (dolist (mode '(term-mode-hook
+  		shell-mode-hook
+  		eshell-mode-hook
+  		vterm-mode-hook
+  		neotree-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+#+end_src
+
+** Company mode
+#+begin_src emacs-lisp
+  (setq company-backends '((company-capf company-dabbrev-code company-keywords company-clang)))
+#+end_src
