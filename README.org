@@ -4,7 +4,7 @@
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs
 
 #+CAPTION: FrameMacs Logo
-[[file:assets/logo.png]]
+[[file:assets/logo-small.png]]
 
 This is an emacs config file modified over ten years, it has got to a pont I can be certain it can provide value to you, especially if you are new to emacs.
 My approach is trying to be as pure emacs as posible, without using evil-mode (of course you are absolutely free to add any package and use/modify this as you please)
