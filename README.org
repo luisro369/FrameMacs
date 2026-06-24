@@ -103,6 +103,7 @@ This section is to configure and install software from other package managers th
 - ac-html-angular
 - all-the-icons
 - all-the-icons-completion
+- all-the-icons-dired
 - auto-complete
 - company
 - company-web
