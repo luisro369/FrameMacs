@@ -42,18 +42,18 @@ This is useful to configure emacs predefined stuff
   (setq doom-themes-enable-bold t
         doom-themes-enable-italic t)
   (load-theme 'doom-dark+ t)
-;;(load-theme 'doom-one t)
+  ;;(load-theme 'doom-one t)
   (doom-themes-visual-bell-config)
 #+end_src
 
 ** Fonts
 #+begin_src emacs-lisp
-   ;;--- Font settings ---
-   (set-face-attribute 'default nil
-                    :family "DejaVu Sans Mono"
-                    :height 110
-                    :weight 'normal
-                    :slant 'normal)
+  ;;--- Font settings ---
+  (set-face-attribute 'default nil
+                      :family "DejaVu Sans Mono"
+                      :height 110
+                      :weight 'normal
+                      :slant 'normal)
 #+end_src
 
 ** IDE initialization layout
@@ -70,9 +70,11 @@ but if you are opening a project via: *"folder -> right click -> open with emacs
               (when (and command-line-args
                          (let ((first-arg (car (last command-line-args))))
   			 (and first-arg (file-directory-p first-arg))))
+  	      ;; Prevents vterm to be deleted or removed when delete-other-windows is called
                 (multi-vterm-dedicated-open)
+  	      (set-window-parameter (selected-window) 'no-delete-other-windows t)
                 (other-window -1)
-  	      ;; Dynamically calculate screen height and adjust vterm 
+  	      ;; Dynamically calculate screen height and adjust terminal space 
   	      (let ((vterm-lines (- (round (* (frame-height) 0.25)) (window-height (next-window)))))
   		(window-resize (next-window) vterm-lines))
                 ;;(enlarge-window 20)
